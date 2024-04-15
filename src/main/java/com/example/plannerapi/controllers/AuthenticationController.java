@@ -21,7 +21,6 @@ public class AuthenticationController {
     private final AuthenticationService service;
 
     @PostMapping("/register")
-    @CrossOrigin(origins = "http://localhost:5173")
     public ResponseEntity<UserJwtAuthenticationResponse> register(@RequestBody @Valid UserSignUpRequest request) {
         return ResponseEntity.ok(service.register(request));
     }

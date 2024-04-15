@@ -5,9 +5,11 @@ import com.example.plannerapi.domain.dto.requests.UserUpdateRequest;
 import com.example.plannerapi.domain.entities.UserEntity;
 import com.example.plannerapi.mappers.Mapper;
 import com.example.plannerapi.services.UserService;
+import io.swagger.v3.oas.annotations.Hidden;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -51,12 +53,17 @@ public class UserController {
 
 
     @GetMapping("/users")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Hidden
     public ResponseEntity<List<UserDto>> getAllUsers() {
         List<UserEntity> userEntities = userService.getAll();
         return new ResponseEntity<>(userEntities.stream().map(userMapper::mapTo).toList(), HttpStatus.OK);
     }
 
+
     @GetMapping(path = "/users/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Hidden
     public ResponseEntity<UserDto> getUserById(@PathVariable("id") Long id) {
         Optional<UserEntity> userEntity = userService.getById(id);
         return userEntity.map(entity
