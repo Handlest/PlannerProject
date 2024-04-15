@@ -1,20 +1,19 @@
 package com.example.plannerapi.domain.dto;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.example.plannerapi.domain.entities.UserEntity;
+import lombok.*;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class UserDto {
     private Long userId;
-    private String login;
+    private String username;
     private String password;
-    private ZonedDateTime registrationDateTime;
+    private LocalDateTime registrationDateTime;
     private String email;
     private boolean isActive;
-    private CustomSettingsDto settings;
+    private UserEntity.Role role;
 }
