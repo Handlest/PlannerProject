@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -32,7 +33,7 @@ public class UserController {
     }
 
     @PutMapping(path = "/users")
-    public ResponseEntity<UserDto> updateUser(Principal principal, @RequestBody UserUpdateRequest userUpdateRequest) {
+    public ResponseEntity<UserDto> updateUser(Principal principal, @RequestBody @Validated UserUpdateRequest userUpdateRequest) {
         Optional<UserEntity> userEntity = userService.getByUsername(principal.getName());
         if (userEntity.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -47,9 +48,6 @@ public class UserController {
         userService.deleteByUsername(principal.getName());
         return new ResponseEntity<>(HttpStatus.OK);
     }
-
-
-
 
 
     @GetMapping("/users")

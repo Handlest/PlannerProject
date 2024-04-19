@@ -8,10 +8,10 @@ import com.example.plannerapi.services.TaskService;
 import com.example.plannerapi.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpServerErrorException;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,9 +22,9 @@ public class TaskServiceImpl implements TaskService {
     private final UserService userService;
 
     @Override
-    public TaskEntity createTask(TaskCreateRequest taskRequest) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        UserEntity currentUser = userService.getByUsername(username).orElse(null);
+    public TaskEntity createTask(Principal principal, TaskCreateRequest taskRequest) {
+        UserEntity currentUser = userService.getByUsername(principal.getName())
+                .orElseThrow(() -> new HttpServerErrorException(HttpStatus.FORBIDDEN));
         TaskEntity taskEntity = TaskEntity.builder()
                 .title(taskRequest.getTitle())
                 .description(taskRequest.getDescription())
@@ -38,9 +38,8 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public Optional<TaskEntity> updateTask(TaskDto taskDto) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        UserEntity currentUser = userService.getByUsername(username)
+    public Optional<TaskEntity> updateTask(Principal principal, TaskDto taskDto) {
+        UserEntity currentUser = userService.getByUsername(principal.getName())
                 .orElseThrow(() -> new HttpServerErrorException(HttpStatus.FORBIDDEN));
         Optional<TaskEntity> savedTaskEntity = taskRepository.getByTaskIdAndUser(taskDto.getTaskId(), currentUser);
 
@@ -76,32 +75,35 @@ public class TaskServiceImpl implements TaskService {
 
 
     @Override
-    public Optional<TaskEntity> getTaskById(long id) {
-        return taskRepository.findById(id);
+    public Optional<TaskEntity> getTaskById(Principal principal, long id) {
+        UserEntity currentUser = userService.getByUsername(principal.getName())
+                .orElseThrow(() -> new HttpServerErrorException(HttpStatus.FORBIDDEN));
+        return taskRepository.getByTaskIdAndUser(id, currentUser);
     }
 
     @Override
-    public List<TaskEntity> getAllTasks() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        UserEntity currentUser = userService.getByUsername(username).orElse(null);
+    public List<TaskEntity> getAllTasks(Principal principal) {
+        UserEntity currentUser = userService.getByUsername(principal.getName())
+                .orElseThrow(() -> new HttpServerErrorException(HttpStatus.FORBIDDEN));
         return taskRepository.getAllByUser(currentUser);
     }
 
     @Override
-    public List<TaskEntity> getAllTasksWithStatus(TaskEntity.Status status) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        UserEntity currentUser = userService.getByUsername(username).orElse(null);
+    public List<TaskEntity> getAllTasksWithStatus(Principal principal, TaskEntity.Status status) {
+        UserEntity currentUser = userService.getByUsername(principal.getName())
+                .orElseThrow(() -> new HttpServerErrorException(HttpStatus.FORBIDDEN));
         return taskRepository.getAllByStatusAndUser(status, currentUser);
     }
 
     @Override
-    public void deleteTask(TaskEntity task) {
+    public void deleteTask(Principal principal, TaskEntity task) {
+
     }
 
     @Override
-    public void deleteTaskById(long id) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        UserEntity currentUser = userService.getByUsername(username).orElse(null);
+    public void deleteTaskById(Principal principal, long id) {
+        UserEntity currentUser = userService.getByUsername(principal.getName())
+                .orElseThrow(() -> new HttpServerErrorException(HttpStatus.FORBIDDEN));
         taskRepository.deleteByTaskIdAndUser(id, currentUser);
     }
 }

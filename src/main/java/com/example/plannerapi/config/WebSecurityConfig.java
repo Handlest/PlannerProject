@@ -15,8 +15,7 @@ import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
 
 import java.util.List;
 
@@ -49,11 +48,14 @@ public class WebSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors((cors) -> cors.configurationSource(apiConfigurationSource()))
-                .csrf(AbstractHttpConfigurer::disable).authorizeHttpRequests(req ->
-                        req.requestMatchers(WHITE_LIST_URL)
-                                .permitAll()
-                                .anyRequest()
-                                .authenticated())
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests((req) -> req
+                        .requestMatchers(WHITE_LIST_URL).permitAll()
+                        .requestMatchers("/tasks/**").authenticated()
+                        .requestMatchers("/users/**").authenticated()
+                        .anyRequest()
+                        .permitAll())
+
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
