@@ -1,5 +1,6 @@
 package com.example.plannerapi.config;
 
+import com.example.plannerapi.exceptions.EntityNotFoundException;
 import com.example.plannerapi.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -22,7 +23,7 @@ public class ApplicationConfig {
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> repository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("User with given username was not found"));
     }
 
     @Bean

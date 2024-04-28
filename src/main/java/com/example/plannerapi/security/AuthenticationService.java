@@ -31,16 +31,14 @@ public class AuthenticationService {
 
     public UserJwtAuthenticationResponse register(UserSignUpRequest request) {
         UserEntity user = UserEntity.builder()
-                .username(request.getUsername())
-                .email(request.getEmail())
+                .username(request.getUsername().strip())
+                .email(request.getEmail().strip())
                 .role(UserEntity.Role.USER)
                 .registrationDateTime(LocalDateTime.now())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .isActive(true)
                 .build();
-        System.out.println(user.isEnabled());
         UserEntity savedUser = userService.create(user);
-        System.out.println(savedUser.isEnabled());
         var jwtToken = jwtService.generateAccessToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
         saveUserToken(savedUser, jwtToken);
@@ -79,6 +77,7 @@ public class AuthenticationService {
         tokenRepository.save(token);
     }
 
+    // TODO rewrite
     private void revokeAllUserTokens(UserEntity user) {
         var validUserTokens = tokenRepository.findAllValidTokenByUser(Math.toIntExact(user.getUserId()));
         if (validUserTokens.isEmpty())

@@ -5,9 +5,12 @@ import com.example.plannerapi.domain.entities.UserEntity;
 import com.example.plannerapi.repositories.UserRepository;
 import com.example.plannerapi.services.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -25,10 +28,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserEntity create(UserEntity userEntity) {
         if (userRepository.existsByUsername(userEntity.getUsername())) {
-            throw new RuntimeException("User with " + userEntity.getUsername() + " username already exists");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User with " + userEntity.getUsername() + " username already exists");
         }
         if (userRepository.existsByEmail(userEntity.getEmail())) {
-            throw new RuntimeException("User with " + userEntity.getEmail() + " email already exists");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User with " + userEntity.getEmail() + " email already exists");
         }
         return userRepository.save(userEntity);
     }
