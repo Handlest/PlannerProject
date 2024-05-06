@@ -7,6 +7,7 @@ import com.example.plannerapi.security.token.Token;
 import com.example.plannerapi.security.token.TokenRepository;
 import com.example.plannerapi.services.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -54,7 +55,7 @@ public class AuthenticationService {
                         request.getPassword())
         );
         UserEntity user = userService.getByUsername(request.getUsername())
-                .orElseThrow(() -> new UsernameNotFoundException("User with username " + request.getUsername() + " was not found"));
+                .orElseThrow(() -> new EntityNotFoundException("User with username " + request.getUsername() + " was not found"));
 
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
