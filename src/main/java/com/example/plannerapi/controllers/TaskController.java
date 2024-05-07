@@ -5,6 +5,7 @@ import com.example.plannerapi.domain.dto.requests.TaskCreateRequest;
 import com.example.plannerapi.domain.entities.TaskEntity;
 import com.example.plannerapi.mappers.Mapper;
 import com.example.plannerapi.services.TaskService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

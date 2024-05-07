@@ -42,7 +42,7 @@ public class TaskEntity {
     @Column(name="tag")
     private String tag;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "user_id")
     private UserEntity user;
 }

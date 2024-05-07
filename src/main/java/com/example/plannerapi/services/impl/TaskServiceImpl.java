@@ -104,6 +104,8 @@ public class TaskServiceImpl implements TaskService {
     public void deleteTaskById(Principal principal, long id) {
         UserEntity currentUser = userService.getByUsername(principal.getName())
                 .orElseThrow(() -> new HttpServerErrorException(HttpStatus.FORBIDDEN));
-        taskRepository.deleteByTaskIdAndUser(id, currentUser);
+        TaskEntity taskOwner = taskRepository.getByTaskIdAndUser(id, currentUser)
+                .orElseThrow(() -> new HttpServerErrorException(HttpStatus.FORBIDDEN));
+        taskRepository.deleteTaskByTaskId(id);
     }
 }
