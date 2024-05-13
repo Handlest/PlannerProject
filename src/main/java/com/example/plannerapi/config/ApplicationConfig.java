@@ -1,5 +1,6 @@
 package com.example.plannerapi.config;
 
+import com.example.plannerapi.exceptions.UnauthorizedException;
 import com.example.plannerapi.repositories.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,7 @@ public class ApplicationConfig {
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> repository.findByUsername(username)
-                .orElseThrow(() -> new EntityNotFoundException("User with given username was not found"));
+                .orElseThrow(() -> new UnauthorizedException("User with given username was not authorized"));
     }
 
     @Bean
@@ -42,8 +43,5 @@ public class ApplicationConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
-
-
 }
 

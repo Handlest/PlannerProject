@@ -14,7 +14,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @Getter
 @Table(name="token")
 public class Token {
-    public enum TokenType { BEARER }
+    public enum TokenType { BEARER, REFRESH }
 
     @Id
     @GeneratedValue
@@ -27,7 +27,7 @@ public class Token {
     @Enumerated(EnumType.STRING)
     public TokenType tokenType = TokenType.BEARER;
 
-    public boolean revoked;
+    public boolean revoked; // Пока что не используется
 
     public boolean expired;
 

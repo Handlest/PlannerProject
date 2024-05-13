@@ -8,6 +8,7 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.example.plannerapi.domain.entities.UserEntity;
+import com.example.plannerapi.security.token.Token;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -29,22 +30,21 @@ public class JwtService {
     private long jwtRefreshExpiration;
 
     public String generateAccessToken(UserDetails userDetails){
-        return generateAnyToken(userDetails, jwtExpiration);
+        return generateAnyToken(userDetails, jwtExpiration, Token.TokenType.BEARER);
     }
 
     public String generateRefreshToken(UserDetails userDetails) {
-        return generateAnyToken(userDetails, jwtRefreshExpiration);
+        return generateAnyToken(userDetails, jwtRefreshExpiration, Token.TokenType.REFRESH);
     }
 
-    private String generateAnyToken(UserDetails userDetails, long jwtExpiration) {
+    private String generateAnyToken(UserDetails userDetails, long jwtExpiration, Token.TokenType tokenType) {
         HashMap<String, Object> claims = new HashMap<>();
         Date creationDate = new Date();
         if (userDetails instanceof UserEntity customUserDetails) {
             claims.put("id", customUserDetails.getUserId());
-            claims.put("email", customUserDetails.getEmail());
             claims.put("username", customUserDetails.getUsername());
             claims.put("role", customUserDetails.getRole().name());
-            claims.put("createdAt", creationDate);
+            claims.put("tokenType", tokenType.toString());
             claims.put("expires", creationDate.toInstant().plus(jwtExpiration, ChronoUnit.SECONDS));
         }
         return prepareToken(claims);
@@ -76,11 +76,14 @@ public class JwtService {
         return getTokenPayload(token).get("username").asString();
     }
 
+    public String extractTokenType(String token){
+        return getTokenPayload(token).get("tokenType").asString();
+    }
+
     private boolean isTokenExpired(String token) {
         Instant expiration = getTokenPayload(token).get("expires").asInstant();
         return expiration.isBefore(new Date().toInstant());
     }
-
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
         String username = getTokenPayload(token).get("username").asString();

@@ -1,24 +1,20 @@
 package com.example.plannerapi.security;
+import com.example.plannerapi.domain.dto.requests.UserRefreshTokenRequest;
 import com.example.plannerapi.domain.dto.requests.UserSignInRequest;
 import com.example.plannerapi.domain.dto.requests.UserSignUpRequest;
 import com.example.plannerapi.domain.dto.responces.UserJwtAuthenticationResponse;
 import com.example.plannerapi.domain.entities.UserEntity;
+import com.example.plannerapi.exceptions.UnauthorizedException;
 import com.example.plannerapi.security.token.Token;
 import com.example.plannerapi.security.token.TokenRepository;
 import com.example.plannerapi.services.UserService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.persistence.EntityNotFoundException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
+
 import java.time.LocalDateTime;
 
 @Service
@@ -31,22 +27,16 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
 
     public UserJwtAuthenticationResponse register(UserSignUpRequest request) {
-        UserEntity user = UserEntity.builder()
+        UserEntity user = userService.create(UserEntity.builder()
                 .username(request.getUsername().strip())
                 .email(request.getEmail().strip())
                 .role(UserEntity.Role.USER)
                 .registrationDateTime(LocalDateTime.now())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .isActive(true)
-                .build();
-        UserEntity savedUser = userService.create(user);
-        var jwtToken = jwtService.generateAccessToken(user);
-        var refreshToken = jwtService.generateRefreshToken(user);
-        saveUserToken(savedUser, jwtToken);
-        return UserJwtAuthenticationResponse.builder()
-                .accessToken(jwtToken)
-                .refreshToken(refreshToken)
-                .build();
+                .build());
+
+        return generateTokenResponse(user);
     }
 
     public UserJwtAuthenticationResponse authenticate(UserSignInRequest request) {
@@ -55,27 +45,20 @@ public class AuthenticationService {
                         request.getPassword())
         );
         UserEntity user = userService.getByUsername(request.getUsername())
-                .orElseThrow(() -> new EntityNotFoundException("User with username " + request.getUsername() + " was not found"));
+                .orElseThrow(() -> new UnauthorizedException("User with username " + request.getUsername() + " was not found"));
 
-        String accessToken = jwtService.generateAccessToken(user);
-        String refreshToken = jwtService.generateRefreshToken(user);
         revokeAllUserTokens(user);
-        saveUserToken(user, accessToken);
-        return UserJwtAuthenticationResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .build();
+        return generateTokenResponse(user);
     }
 
-    private void saveUserToken(UserEntity user, String jwtToken) {
-        var token = Token.builder()
+    private void saveUserToken(UserEntity user, String jwtToken, Token.TokenType tokenType) {
+        tokenRepository.save(Token.builder()
                 .user(user)
                 .token(jwtToken)
-                .tokenType(Token.TokenType.BEARER)
+                .tokenType(tokenType)
                 .expired(false)
                 .revoked(false)
-                .build();
-        tokenRepository.save(token);
+                .build());
     }
 
     // TODO rewrite
@@ -91,27 +74,37 @@ public class AuthenticationService {
     }
 
 
-    public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        final String refreshToken;
-        final String username;
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return;
+    public UserJwtAuthenticationResponse refreshToken(UserRefreshTokenRequest request) {
+        final String oldRefreshToken = request.getRefreshToken();
+        String type = jwtService.extractTokenType(oldRefreshToken);
+        if (!type.equals("REFRESH")) {
+            throw new UnauthorizedException("Invalid token type. Expected REFRESH, but found " + type);
         }
-        refreshToken = authHeader.substring(7);
-        username = jwtService.extractUsername(refreshToken);
-        if (username != null) {
-            UserEntity user = userService.getByUsername(username).orElseThrow();
-            if (jwtService.isTokenValid(refreshToken, user)) {
-                var accessToken = jwtService.generateAccessToken(user);
-                revokeAllUserTokens(user);
-                saveUserToken(user, accessToken);
-                var authResponse = UserJwtAuthenticationResponse.builder()
-                        .accessToken(accessToken)
-                        .refreshToken(refreshToken)
-                        .build();
-                new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
-            }
+
+        String username = jwtService.extractUsername(oldRefreshToken);
+        if (username == null) {
+            throw new UnauthorizedException("Provided refresh token is invalid");
         }
+
+        UserEntity user = userService.getByUsername(username)
+                .orElseThrow(() -> new UnauthorizedException("Holder of token was not found"));
+        if (!jwtService.isTokenValid(oldRefreshToken, user)) {
+            throw new UnauthorizedException("Refresh token is invalid");
+        }
+
+        revokeAllUserTokens(user);
+        return generateTokenResponse(user);
+    }
+
+    private UserJwtAuthenticationResponse generateTokenResponse(UserEntity user) {
+        String accessToken = jwtService.generateAccessToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+        saveUserToken(user, accessToken, Token.TokenType.BEARER);
+        saveUserToken(user, refreshToken, Token.TokenType.REFRESH);
+
+        return UserJwtAuthenticationResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
     }
 }

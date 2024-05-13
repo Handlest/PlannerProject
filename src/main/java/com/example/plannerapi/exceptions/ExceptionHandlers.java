@@ -14,7 +14,6 @@ import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
@@ -45,7 +44,7 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(ex, customError, headers, HttpStatusCode.valueOf(customError.getStatus()), request);
     }
 
-    @ExceptionHandler({EntityNotFoundException.class, UsernameNotFoundException.class})
+    @ExceptionHandler({EntityNotFoundException.class, UsernameNotFoundException.class, UnauthorizedException.class})
     public ResponseEntity<Object> handleUsernameNotFoundException(EntityNotFoundException ex) {
         List<Map<String, String>> errors = new ArrayList<>();
             errors.add(Map.of("message", ex.getMessage()));
