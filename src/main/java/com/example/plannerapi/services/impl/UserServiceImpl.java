@@ -2,7 +2,9 @@ package com.example.plannerapi.services.impl;
 
 import com.example.plannerapi.domain.dto.requests.UserUpdateRequest;
 import com.example.plannerapi.domain.entities.UserEntity;
+import com.example.plannerapi.repositories.TaskRepository;
 import com.example.plannerapi.repositories.UserRepository;
+import com.example.plannerapi.security.token.TokenRepository;
 import com.example.plannerapi.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +21,7 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final TokenRepository tokenRepository;
 
     @Override
     public UserEntity save(UserEntity userEntity) {
@@ -66,7 +69,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteById(Long id) {
-        userRepository.findById(id).ifPresent(userRepository::delete);
+        userRepository.findById(id).ifPresent(user -> {
+            tokenRepository.deleteAll(tokenRepository.findAllValidTokenByUser(Math.toIntExact(user.getUserId())));
+            userRepository.delete(user);
+        });
     }
 
     @Override

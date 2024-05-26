@@ -9,9 +9,12 @@ import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.example.plannerapi.domain.entities.UserEntity;
 import com.example.plannerapi.security.token.Token;
+import com.example.plannerapi.security.token.TokenRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+
+import javax.security.sasl.SaslServer;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
@@ -22,12 +25,17 @@ import static java.time.Instant.ofEpochSecond;
 
 @Service
 public class JwtService {
+    private final TokenRepository tokenRepository;
     @Value("${token.signing.key}")
     private String jwtSigningKey;
     @Value("${application.security.jwt.expiration}")
     private long jwtExpiration;
     @Value("${application.security.jwt.refresh-token.expiration}")
     private long jwtRefreshExpiration;
+
+    public JwtService(TokenRepository tokenRepository) {
+        this.tokenRepository = tokenRepository;
+    }
 
     public String generateAccessToken(UserDetails userDetails){
         return generateAnyToken(userDetails, jwtExpiration, Token.TokenType.BEARER);
@@ -83,6 +91,16 @@ public class JwtService {
     private boolean isTokenExpired(String token) {
         Instant expiration = getTokenPayload(token).get("expires").asInstant();
         return expiration.isBefore(new Date().toInstant());
+    }
+
+    public boolean isTokenRevokedDb(String token) {
+        var savedToken = tokenRepository.findByToken(token);
+        return savedToken.isEmpty() || savedToken.get().isRevoked();
+    }
+
+    public boolean isTokenExpiredDb(String token) {
+        var savedToken = tokenRepository.findByToken(token);
+        return savedToken.isEmpty() || savedToken.get().isExpired();
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {

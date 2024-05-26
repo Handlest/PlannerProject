@@ -1,4 +1,5 @@
 package com.example.plannerapi.domain.dto.requests;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -17,10 +18,10 @@ public class TaskCreateRequest {
     @Schema(description = "Описание задачи", example = "Бренд: домик в деревне, главное не перепутать!")
     private String description;
 
-    @Schema(description = "Дата начала дедлайна", example = "2023-01-24 16:30")
+    @Schema(description = "Дата начала дедлайна")
     private LocalDateTime DueToStart;
 
-    @Schema(description = "Дата окончания дедлайна", example = "2023-01-24 16:30")
+    @Schema(description = "Дата окончания дедлайна")
     private LocalDateTime DueToEnd;
 
     @Schema(description = "Приоритет задачи", example = "1", defaultValue = "1")

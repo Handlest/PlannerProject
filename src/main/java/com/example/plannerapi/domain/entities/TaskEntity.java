@@ -1,6 +1,9 @@
 package com.example.plannerapi.domain.entities;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -17,32 +20,34 @@ public class TaskEntity {
     @Id
     @SequenceGenerator(name = "tasks_seq", sequenceName = "tasks_sequence")
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    @Column(name="task_id")
     private long taskId;
 
-    @Column(name="title", nullable = false)
+    @Column(nullable = false)
     private String title;
 
-    @Column(name="description")
     private String description;
 
-    @Column(name="due_to_start")
-    private LocalDateTime DueToStart;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDateTime startDeadline;
 
-    @Column(name="due_to_end")
-    private LocalDateTime DueToEnd;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDateTime endDeadline;
 
     @Enumerated(EnumType.STRING)
-    @Column(name="status", nullable = false)
+    @Column(nullable = false)
     private Status status = Status.NEW;
 
-    @Column(name="priority", nullable = false)
+    @Column(nullable = false)
     private int priority = 0;
 
-    @Column(name="tag")
     private String tag;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
     private UserEntity user;
+
+    @Column(nullable = false)
+    @CreatedDate
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDateTime createdDate;
 }

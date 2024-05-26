@@ -88,7 +88,12 @@ public class AuthenticationService {
 
         UserEntity user = userService.getByUsername(username)
                 .orElseThrow(() -> new UnauthorizedException("Holder of token was not found"));
-        if (!jwtService.isTokenValid(oldRefreshToken, user)) {
+
+        if (jwtService.isTokenExpiredDb(oldRefreshToken)) {
+            throw new UnauthorizedException("Refresh token has expired");
+        }
+
+        if (!jwtService.isTokenValid(oldRefreshToken, user) || jwtService.isTokenRevokedDb(oldRefreshToken)) {
             throw new UnauthorizedException("Refresh token is invalid");
         }
 

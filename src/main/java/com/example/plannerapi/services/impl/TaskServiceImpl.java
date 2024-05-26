@@ -7,11 +7,14 @@ import com.example.plannerapi.repositories.TaskRepository;
 import com.example.plannerapi.services.TaskService;
 import com.example.plannerapi.services.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpServerErrorException;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,11 +31,13 @@ public class TaskServiceImpl implements TaskService {
         TaskEntity taskEntity = TaskEntity.builder()
                 .title(taskRequest.getTitle())
                 .description(taskRequest.getDescription())
-                .DueToStart(taskRequest.getDueToStart())
-                .DueToEnd(taskRequest.getDueToEnd())
+                .startDeadline(taskRequest.getDueToStart())
+                .endDeadline(taskRequest.getDueToEnd())
                 .priority(taskRequest.getPriority())
                 .user(currentUser)
                 .status(TaskEntity.Status.NEW)
+                .createdDate(LocalDateTime.now())
+                .tag(taskRequest.getTag())
                 .build();
         return taskRepository.save(taskEntity);
     }
@@ -48,11 +53,11 @@ public class TaskServiceImpl implements TaskService {
         }
 
         TaskEntity taskEntity = savedTaskEntity.get();
-        if (taskDto.getDueToEnd() != null){
-            taskEntity.setDueToEnd(taskDto.getDueToEnd());
+        if (taskDto.getEndDeadline() != null){
+            taskEntity.setEndDeadline(taskDto.getEndDeadline());
         }
-        if (taskDto.getDueToStart() != null){
-            taskEntity.setDueToStart(taskDto.getDueToStart());
+        if (taskDto.getStartDeadline() != null){
+            taskEntity.setStartDeadline(taskDto.getStartDeadline());
         }
         if (taskDto.getTag() != null){
             taskEntity.setTag(taskDto.getTag());
@@ -82,17 +87,10 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public List<TaskEntity> getAllTasks(Principal principal) {
+    public List<TaskEntity> getAllTasks(Principal principal, Pageable pageable, Specification<TaskEntity> specification) {
         UserEntity currentUser = userService.getByUsername(principal.getName())
                 .orElseThrow(() -> new HttpServerErrorException(HttpStatus.FORBIDDEN));
-        return taskRepository.getAllByUser(currentUser);
-    }
-
-    @Override
-    public List<TaskEntity> getAllTasksWithStatus(Principal principal, TaskEntity.Status status) {
-        UserEntity currentUser = userService.getByUsername(principal.getName())
-                .orElseThrow(() -> new HttpServerErrorException(HttpStatus.FORBIDDEN));
-        return taskRepository.getAllByStatusAndUser(status, currentUser);
+        return taskRepository.findAll(specification, pageable).getContent();
     }
 
     @Override

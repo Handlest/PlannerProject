@@ -6,6 +6,7 @@ import com.example.plannerapi.domain.entities.UserEntity;
 import com.example.plannerapi.mappers.Mapper;
 import com.example.plannerapi.services.UserService;
 import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,7 @@ import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "Работа с пользователями")
 public class UserController {
     private final UserService userService;
     private final Mapper<UserEntity, UserDto> userMapper;

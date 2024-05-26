@@ -1,5 +1,6 @@
 package com.example.plannerapi.security;
 
+import com.example.plannerapi.exceptions.UnauthorizedException;
 import com.example.plannerapi.security.token.TokenRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -26,6 +27,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     public static final String HEADER_NAME = "Authorization";
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final TokenRepository tokenRepository;
 
     @Override
     protected void doFilterInternal(
@@ -44,9 +46,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         String jwt = authHeader.substring(BEARER_PREFIX.length());
         String username = jwtService.extractUsername(jwt);
+        String tokenType = jwtService.extractTokenType(jwt);
+
+        if (StringUtils.isEmpty(tokenType) || !StringUtils.equals("BEARER", tokenType)) {
+            throw new UnauthorizedException("Can not authorize user with refresh token");
+        }
+
+        var isTokenValid = tokenRepository.findByToken(jwt)
+                .map(t -> !t.isExpired() && !t.isRevoked())
+                .orElse(false);
         if (StringUtils.isNotEmpty(username) && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            if (jwtService.isTokenValid(jwt, userDetails)) {
+            if (jwtService.isTokenValid(jwt, userDetails) && isTokenValid) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,
