@@ -14,14 +14,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import javax.security.sasl.SaslServer;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
-import static java.time.Instant.ofEpochSecond;
 
 @Service
 public class JwtService {

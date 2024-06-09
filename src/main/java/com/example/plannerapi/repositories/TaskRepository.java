@@ -6,20 +6,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository
 @Transactional
 public interface TaskRepository extends JpaRepository<TaskEntity, Long>, JpaSpecificationExecutor<TaskEntity> {
-    List<TaskEntity> getAllByTagAndUser(String tag, UserEntity user);
-    List<TaskEntity> getAllByPriorityAndUser(int priority, UserEntity user);
-    List<TaskEntity> getAllByUser(UserEntity user);
     Optional<TaskEntity> getByTaskIdAndUser(Long id, UserEntity user);
-    List<TaskEntity> getAllByStatusAndUser(TaskEntity.Status status, UserEntity user);
-    List<TaskEntity> getAllByUserOrderByStatus(UserEntity user);
-    List<TaskEntity> getAllByUserOrderByEndDeadline(UserEntity user);
-    List<TaskEntity> getAllByUserOrderByPriority(UserEntity user);
-    List<TaskEntity> getAllByUserOrderByTag(UserEntity user);
     void deleteTaskByTaskId(long id);
 }

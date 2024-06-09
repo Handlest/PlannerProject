@@ -46,6 +46,8 @@ public class TaskServiceImpl implements TaskService {
     public Optional<TaskEntity> updateTask(Principal principal, TaskDto taskDto) {
         UserEntity currentUser = userService.getByUsername(principal.getName())
                 .orElseThrow(() -> new HttpServerErrorException(HttpStatus.FORBIDDEN));
+        TaskEntity taskOwner = taskRepository.getByTaskIdAndUser(taskDto.getTaskId(), currentUser)
+                .orElseThrow(() -> new HttpServerErrorException(HttpStatus.FORBIDDEN));
         Optional<TaskEntity> savedTaskEntity = taskRepository.getByTaskIdAndUser(taskDto.getTaskId(), currentUser);
 
         if (savedTaskEntity.isEmpty()) {
@@ -83,6 +85,8 @@ public class TaskServiceImpl implements TaskService {
     public Optional<TaskEntity> getTaskById(Principal principal, long id) {
         UserEntity currentUser = userService.getByUsername(principal.getName())
                 .orElseThrow(() -> new HttpServerErrorException(HttpStatus.FORBIDDEN));
+        TaskEntity taskOwner = taskRepository.getByTaskIdAndUser(id, currentUser)
+                .orElseThrow(() -> new HttpServerErrorException(HttpStatus.FORBIDDEN));
         return taskRepository.getByTaskIdAndUser(id, currentUser);
     }
 
@@ -90,7 +94,10 @@ public class TaskServiceImpl implements TaskService {
     public List<TaskEntity> getAllTasks(Principal principal, Pageable pageable, Specification<TaskEntity> specification) {
         UserEntity currentUser = userService.getByUsername(principal.getName())
                 .orElseThrow(() -> new HttpServerErrorException(HttpStatus.FORBIDDEN));
-        return taskRepository.findAll(specification, pageable).getContent();
+        return taskRepository.findAll(specification, pageable).getContent()
+                .stream()
+                .filter(task -> task.getUser() == currentUser)
+                .toList();
     }
 
     @Override

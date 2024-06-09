@@ -20,8 +20,6 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
-import static com.example.plannerapi.controllers.specifications.TaskSpecifications.*;
-
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "Работа с задачами")
