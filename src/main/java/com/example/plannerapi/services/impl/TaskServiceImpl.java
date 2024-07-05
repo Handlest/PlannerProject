@@ -1,4 +1,5 @@
 package com.example.plannerapi.services.impl;
+
 import com.example.plannerapi.domain.dto.TaskDto;
 import com.example.plannerapi.domain.dto.requests.TaskCreateRequest;
 import com.example.plannerapi.domain.entities.TaskEntity;
@@ -55,25 +56,25 @@ public class TaskServiceImpl implements TaskService {
         }
 
         TaskEntity taskEntity = savedTaskEntity.get();
-        if (taskDto.getEndDeadline() != null){
+        if (taskDto.getEndDeadline() != null) {
             taskEntity.setEndDeadline(taskDto.getEndDeadline());
         }
-        if (taskDto.getStartDeadline() != null){
+        if (taskDto.getStartDeadline() != null) {
             taskEntity.setStartDeadline(taskDto.getStartDeadline());
         }
-        if (taskDto.getTag() != null){
+        if (taskDto.getTag() != null) {
             taskEntity.setTag(taskDto.getTag());
         }
-        if(taskDto.getTitle() != null){
+        if (taskDto.getTitle() != null) {
             taskEntity.setTitle(taskDto.getTitle());
         }
-        if(taskDto.getDescription() != null){
+        if (taskDto.getDescription() != null) {
             taskEntity.setDescription(taskDto.getDescription());
         }
-        if(taskDto.getPriority() != taskEntity.getPriority()){
+        if (taskDto.getPriority() != taskEntity.getPriority()) {
             taskEntity.setPriority(taskDto.getPriority());
         }
-        if(taskDto.getStatus() != taskEntity.getStatus()){
+        if (taskDto.getStatus() != taskEntity.getStatus()) {
             taskEntity.setStatus(taskDto.getStatus());
         }
         taskRepository.saveAndFlush(taskEntity);
@@ -94,7 +95,8 @@ public class TaskServiceImpl implements TaskService {
     public List<TaskEntity> getAllTasks(Principal principal, Pageable pageable, Specification<TaskEntity> specification) {
         UserEntity currentUser = userService.getByUsername(principal.getName())
                 .orElseThrow(() -> new HttpServerErrorException(HttpStatus.FORBIDDEN));
-        return taskRepository.findAll(specification, pageable).getContent()
+        return taskRepository.findAll(specification, pageable)
+                .getContent()
                 .stream()
                 .filter(task -> task.getUser() == currentUser)
                 .toList();

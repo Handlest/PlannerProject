@@ -2,17 +2,14 @@ package com.example.plannerapi.security.token;
 
 import java.util.List;
 import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.CrudRepository;
 
-public interface TokenRepository extends JpaRepository<Token, Integer> {
+public interface TokenRepository extends CrudRepository<TokenRedis, String> {
 
-    @Query(value = """
-      select t from Token t inner join UserEntity u\s
-      on t.user.userId = u.userId\s
-      where u.userId = :id and (t.expired = false or t.revoked = false)\s
-      """)
-    List<Token> findAllValidTokenByUser(Integer id);
-
-    Optional<Token> findByToken(String token);
+    Optional<TokenRedis> getByToken(String token);
+    Optional<TokenRedis> getByTokenAndUserId(String token, String userId);
+    List<TokenRedis> findAllByUserId(String userId);
+    void deleteAllByUserId(String userId);
+    void deleteByToken(String token);
+    void saveToken(TokenRedis tokenRedis);
 }

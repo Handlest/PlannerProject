@@ -8,21 +8,19 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.example.plannerapi.domain.entities.UserEntity;
-import com.example.plannerapi.security.token.Token;
-import com.example.plannerapi.security.token.TokenRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class JwtService {
-    private final TokenRepository tokenRepository;
     @Value("${token.signing.key}")
     private String jwtSigningKey;
     @Value("${application.security.jwt.expiration}")
@@ -30,26 +28,22 @@ public class JwtService {
     @Value("${application.security.jwt.refresh-token.expiration}")
     private long jwtRefreshExpiration;
 
-    public JwtService(TokenRepository tokenRepository) {
-        this.tokenRepository = tokenRepository;
-    }
-
     public String generateAccessToken(UserDetails userDetails){
-        return generateAnyToken(userDetails, jwtExpiration, Token.TokenType.BEARER);
+        return generateAnyToken(userDetails, jwtExpiration, "ACCESS");
     }
 
     public String generateRefreshToken(UserDetails userDetails) {
-        return generateAnyToken(userDetails, jwtRefreshExpiration, Token.TokenType.REFRESH);
+        return generateAnyToken(userDetails, jwtRefreshExpiration, "REFRESH");
     }
 
-    private String generateAnyToken(UserDetails userDetails, long jwtExpiration, Token.TokenType tokenType) {
+    private String generateAnyToken(UserDetails userDetails, long jwtExpiration, String tokenType) {
         HashMap<String, Object> claims = new HashMap<>();
         Date creationDate = new Date();
         if (userDetails instanceof UserEntity customUserDetails) {
             claims.put("id", customUserDetails.getUserId());
             claims.put("username", customUserDetails.getUsername());
             claims.put("role", customUserDetails.getRole().name());
-            claims.put("tokenType", tokenType.toString());
+            claims.put("tokenType", tokenType);
             claims.put("expires", creationDate.toInstant().plus(jwtExpiration, ChronoUnit.SECONDS));
         }
         return prepareToken(claims);
@@ -83,25 +77,5 @@ public class JwtService {
 
     public String extractTokenType(String token){
         return getTokenPayload(token).get("tokenType").asString();
-    }
-
-    private boolean isTokenExpired(String token) {
-        Instant expiration = getTokenPayload(token).get("expires").asInstant();
-        return expiration.isBefore(new Date().toInstant());
-    }
-
-    public boolean isTokenRevokedDb(String token) {
-        var savedToken = tokenRepository.findByToken(token);
-        return savedToken.isEmpty() || savedToken.get().isRevoked();
-    }
-
-    public boolean isTokenExpiredDb(String token) {
-        var savedToken = tokenRepository.findByToken(token);
-        return savedToken.isEmpty() || savedToken.get().isExpired();
-    }
-
-    public boolean isTokenValid(String token, UserDetails userDetails) {
-        String username = getTokenPayload(token).get("username").asString();
-        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
 }
