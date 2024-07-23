@@ -1,8 +1,8 @@
 package com.example.plannerapi.security;
 
 import com.example.plannerapi.exceptions.UnauthorizedException;
-import com.example.plannerapi.security.token.TokenRedis;
-import com.example.plannerapi.security.token.TokenRepository;
+import com.example.plannerapi.domain.entities.TokenRedisEntity;
+import com.example.plannerapi.repositories.TokenRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -49,7 +49,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throw new UnauthorizedException("Can not authorize user with refresh token");
         }
 
-        TokenRedis redisToken = tokenRepository.getByToken(jwtToken)
+        TokenRedisEntity redisToken = tokenRepository.getByToken(jwtToken)
                 .orElseThrow(() -> new UnauthorizedException("Token has expired or invalid"));
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));

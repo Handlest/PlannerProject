@@ -1,4 +1,4 @@
-package com.example.plannerapi.security.token;
+package com.example.plannerapi.domain.entities;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,7 +13,7 @@ import org.springframework.data.redis.core.TimeToLive;
 @Setter
 @Builder
 @AllArgsConstructor
-public class TokenRedis {
+public class TokenRedisEntity {
     @Id
     private String token;
     @TimeToLive

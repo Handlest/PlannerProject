@@ -3,7 +3,7 @@ package com.example.plannerapi.services.impl;
 import com.example.plannerapi.domain.dto.requests.UserUpdateRequest;
 import com.example.plannerapi.domain.entities.UserEntity;
 import com.example.plannerapi.repositories.UserRepository;
-import com.example.plannerapi.security.token.TokenRepository;
+import com.example.plannerapi.repositories.TokenRepository;
 import com.example.plannerapi.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

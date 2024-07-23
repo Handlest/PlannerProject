@@ -5,8 +5,8 @@ import com.example.plannerapi.domain.dto.requests.UserSignUpRequest;
 import com.example.plannerapi.domain.dto.responces.UserJwtAuthenticationResponse;
 import com.example.plannerapi.domain.entities.UserEntity;
 import com.example.plannerapi.exceptions.UnauthorizedException;
-import com.example.plannerapi.security.token.TokenRedis;
-import com.example.plannerapi.security.token.TokenRepository;
+import com.example.plannerapi.domain.entities.TokenRedisEntity;
+import com.example.plannerapi.repositories.TokenRepository;
 import com.example.plannerapi.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,9 +27,9 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     @Value("${application.security.jwt.expiration}")
-    private static long accessExpTime;
+    private long accessExpTime;
     @Value("${application.security.jwt.refresh-token.expiration}")
-    private static long refreshExpTime;
+    private long refreshExpTime;
 
     public UserJwtAuthenticationResponse register(UserSignUpRequest request) {
         UserEntity user = userService.create(UserEntity.builder()
@@ -55,9 +55,9 @@ public class AuthenticationService {
     }
 
     public UserJwtAuthenticationResponse refreshToken(UserRefreshTokenRequest request) {
-        final String oldRefreshToken = request.getRefreshToken();
+        String oldRefreshToken = request.getRefreshToken();
 
-        TokenRedis token = tokenRepository.getByToken(oldRefreshToken)
+        TokenRedisEntity token = tokenRepository.getByToken(oldRefreshToken)
                 .orElseThrow(() -> new UnauthorizedException("Token is invalid or expired"));
 
         if (!token.getTokenType().equals("REFRESH")) {
@@ -79,8 +79,8 @@ public class AuthenticationService {
     private UserJwtAuthenticationResponse generateTokenResponse(UserEntity user) {
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
-        tokenRepository.save(new TokenRedis(accessToken, accessExpTime, user.getUserId().toString() ,  "ACCESS"));
-        tokenRepository.save(new TokenRedis(refreshToken,refreshExpTime, user.getUserId().toString(), "REFRESH"));
+        tokenRepository.save(new TokenRedisEntity(accessToken, accessExpTime, user.getUserId().toString() ,  "ACCESS"));
+        tokenRepository.save(new TokenRedisEntity(refreshToken,refreshExpTime, user.getUserId().toString(), "REFRESH"));
 
         return UserJwtAuthenticationResponse.builder()
                 .accessToken(accessToken)
