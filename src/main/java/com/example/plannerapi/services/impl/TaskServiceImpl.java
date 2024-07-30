@@ -6,36 +6,31 @@ import com.example.plannerapi.domain.entities.TaskEntity;
 import com.example.plannerapi.domain.entities.UserEntity;
 import com.example.plannerapi.repositories.TaskRepository;
 import com.example.plannerapi.services.TaskService;
-import com.example.plannerapi.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpServerErrorException;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class TaskServiceImpl implements TaskService {
     private final TaskRepository taskRepository;
-    private final UserService userService;
 
     @Override
-    public TaskEntity createTask(Principal principal, TaskCreateRequest taskRequest) {
-        UserEntity currentUser = userService.getByUsername(principal.getName())
-                .orElseThrow(() -> new HttpServerErrorException(HttpStatus.FORBIDDEN));
+    public TaskEntity createTask(UserEntity user, TaskCreateRequest taskRequest) {
         TaskEntity taskEntity = TaskEntity.builder()
                 .title(taskRequest.getTitle())
                 .description(taskRequest.getDescription())
                 .startDeadline(taskRequest.getDueToStart())
                 .endDeadline(taskRequest.getDueToEnd())
                 .priority(taskRequest.getPriority())
-                .user(currentUser)
+                .user(user)
                 .status(TaskEntity.Status.NEW)
                 .createdDate(LocalDateTime.now())
                 .tag(taskRequest.getTag())
@@ -44,12 +39,8 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public Optional<TaskEntity> updateTask(Principal principal, TaskDto taskDto) {
-        UserEntity currentUser = userService.getByUsername(principal.getName())
-                .orElseThrow(() -> new HttpServerErrorException(HttpStatus.FORBIDDEN));
-        TaskEntity taskOwner = taskRepository.getByTaskIdAndUser(taskDto.getTaskId(), currentUser)
-                .orElseThrow(() -> new HttpServerErrorException(HttpStatus.FORBIDDEN));
-        Optional<TaskEntity> savedTaskEntity = taskRepository.getByTaskIdAndUser(taskDto.getTaskId(), currentUser);
+    public Optional<TaskEntity> updateTask(TaskDto taskDto) {
+        Optional<TaskEntity> savedTaskEntity = taskRepository.findById(taskDto.getTaskId());
 
         if (savedTaskEntity.isEmpty()) {
             return Optional.empty();
@@ -83,22 +74,16 @@ public class TaskServiceImpl implements TaskService {
 
 
     @Override
-    public Optional<TaskEntity> getTaskById(Principal principal, long id) {
-        UserEntity currentUser = userService.getByUsername(principal.getName())
-                .orElseThrow(() -> new HttpServerErrorException(HttpStatus.FORBIDDEN));
-        TaskEntity taskOwner = taskRepository.getByTaskIdAndUser(id, currentUser)
-                .orElseThrow(() -> new HttpServerErrorException(HttpStatus.FORBIDDEN));
-        return taskRepository.getByTaskIdAndUser(id, currentUser);
+    public Optional<TaskEntity> getTaskById(long id) {
+        return taskRepository.findById(id);
     }
 
     @Override
-    public List<TaskEntity> getAllTasks(Principal principal, Pageable pageable, Specification<TaskEntity> specification) {
-        UserEntity currentUser = userService.getByUsername(principal.getName())
-                .orElseThrow(() -> new HttpServerErrorException(HttpStatus.FORBIDDEN));
+    public List<TaskEntity> getAllTasks(UserEntity user, Pageable pageable, Specification<TaskEntity> specification) {
         return taskRepository.findAll(specification, pageable)
                 .getContent()
                 .stream()
-                .filter(task -> task.getUser() == currentUser)
+                .filter(task -> Objects.equals(task.getUser().getUserId(), user.getUserId()))
                 .toList();
     }
 
@@ -108,11 +93,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public void deleteTaskById(Principal principal, long id) {
-        UserEntity currentUser = userService.getByUsername(principal.getName())
-                .orElseThrow(() -> new HttpServerErrorException(HttpStatus.FORBIDDEN));
-        TaskEntity taskOwner = taskRepository.getByTaskIdAndUser(id, currentUser)
-                .orElseThrow(() -> new HttpServerErrorException(HttpStatus.FORBIDDEN));
+    public void deleteTaskById(long id) {
         taskRepository.deleteTaskByTaskId(id);
     }
 }

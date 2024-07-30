@@ -20,12 +20,6 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final TokenRepository tokenRepository;
-
-    @Override
-    public UserEntity save(UserEntity userEntity) {
-        return userRepository.save(userEntity);
-    }
 
     @Override
     public UserEntity create(UserEntity userEntity) {
@@ -67,18 +61,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteById(Long id) {
-        userRepository.findById(id).ifPresent(user -> {
-            tokenRepository.deleteAll(tokenRepository.findAllByUserId(user.getUserId().toString()));
-            userRepository.delete(user);
-        });
-    }
-
-    @Override
     public void deleteByUsername(String username){
         userRepository.findByUsername(username).ifPresent(userRepository::delete);
     }
-
 
     public Optional<UserEntity> getCurrentUser() {
         var username = SecurityContextHolder.getContext().getAuthentication().getName();

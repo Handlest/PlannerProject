@@ -1,1 +1,2 @@
-//package com.example.plannerapi.domain.entities;
+package com.example.plannerapi.domain.entities;
+

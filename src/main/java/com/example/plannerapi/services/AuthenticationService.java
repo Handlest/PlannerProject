@@ -1,4 +1,4 @@
-package com.example.plannerapi.security;
+package com.example.plannerapi.services;
 import com.example.plannerapi.domain.dto.requests.UserRefreshTokenRequest;
 import com.example.plannerapi.domain.dto.requests.UserSignInRequest;
 import com.example.plannerapi.domain.dto.requests.UserSignUpRequest;
@@ -7,16 +7,13 @@ import com.example.plannerapi.domain.entities.UserEntity;
 import com.example.plannerapi.exceptions.UnauthorizedException;
 import com.example.plannerapi.domain.entities.TokenRedisEntity;
 import com.example.plannerapi.repositories.TokenRepository;
-import com.example.plannerapi.services.UserService;
+import com.example.plannerapi.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-
-import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -35,10 +32,7 @@ public class AuthenticationService {
         UserEntity user = userService.create(UserEntity.builder()
                 .username(request.getUsername().strip())
                 .email(request.getEmail().strip())
-                .role(UserEntity.Role.USER)
-                .registrationDateTime(LocalDateTime.now())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .isActive(true)
                 .build());
 
         return generateTokenResponse(user);

@@ -1,6 +1,6 @@
 package com.example.plannerapi.domain.dto.requests;
 
-import com.example.plannerapi.domain.entities.CustomSettingsEntity;
+import com.example.plannerapi.domain.entities.UserSettingsEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -21,5 +21,5 @@ public class UserUpdateRequest {
     private String password;
 
     @Schema(description = "Настройки для интерфейса пользователя")
-    private CustomSettingsEntity settings;
+    private UserSettingsEntity settings;
 }

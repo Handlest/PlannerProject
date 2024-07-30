@@ -3,7 +3,7 @@ import com.example.plannerapi.domain.dto.requests.UserRefreshTokenRequest;
 import com.example.plannerapi.domain.dto.requests.UserSignInRequest;
 import com.example.plannerapi.domain.dto.requests.UserSignUpRequest;
 import com.example.plannerapi.domain.dto.responces.UserJwtAuthenticationResponse;
-import com.example.plannerapi.security.AuthenticationService;
+import com.example.plannerapi.services.AuthenticationService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
