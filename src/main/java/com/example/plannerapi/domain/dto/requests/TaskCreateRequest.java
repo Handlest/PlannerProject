@@ -17,10 +17,10 @@ public class TaskCreateRequest {
     @Schema(description = "Описание задачи", example = "Бренд: домик в деревне, главное не перепутать!")
     private String description;
 
-    @Schema(description = "Дата начала дедлайна", example = "2023-01-24 16:30")
+    @Schema(description = "Дата начала дедлайна")
     private LocalDateTime DueToStart;
 
-    @Schema(description = "Дата окончания дедлайна", example = "2023-01-24 16:30")
+    @Schema(description = "Дата окончания дедлайна")
     private LocalDateTime DueToEnd;
 
     @Schema(description = "Приоритет задачи", example = "1", defaultValue = "1")

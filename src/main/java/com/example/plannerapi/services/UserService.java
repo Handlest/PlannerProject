@@ -9,12 +9,10 @@ import java.util.Optional;
 
 @Service
 public interface UserService {
-    UserEntity save(UserEntity user);
     List<UserEntity> getAll();
     Optional<UserEntity> getById(Long id);
     Optional<UserEntity> getCurrentUser();
     UserEntity update(long userId, UserUpdateRequest userUpdateRequest);
-    void deleteById(Long id);
     void deleteByUsername(String username);
     UserEntity create(UserEntity userEntity);
     Optional<UserEntity> getByUsername(String username);

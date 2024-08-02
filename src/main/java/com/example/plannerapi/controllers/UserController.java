@@ -5,9 +5,13 @@ import com.example.plannerapi.domain.dto.requests.UserUpdateRequest;
 import com.example.plannerapi.domain.entities.UserEntity;
 import com.example.plannerapi.mappers.Mapper;
 import com.example.plannerapi.services.UserService;
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -16,6 +20,7 @@ import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "Работа с пользователями")
 public class UserController {
     private final UserService userService;
     private final Mapper<UserEntity, UserDto> userMapper;
@@ -30,7 +35,7 @@ public class UserController {
     }
 
     @PutMapping(path = "/users")
-    public ResponseEntity<UserDto> updateUser(Principal principal, @RequestBody UserUpdateRequest userUpdateRequest) {
+    public ResponseEntity<UserDto> updateUser(Principal principal, @RequestBody @Validated UserUpdateRequest userUpdateRequest) {
         Optional<UserEntity> userEntity = userService.getByUsername(principal.getName());
         if (userEntity.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -47,16 +52,18 @@ public class UserController {
     }
 
 
-
-
-
     @GetMapping("/users")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Hidden
     public ResponseEntity<List<UserDto>> getAllUsers() {
         List<UserEntity> userEntities = userService.getAll();
         return new ResponseEntity<>(userEntities.stream().map(userMapper::mapTo).toList(), HttpStatus.OK);
     }
 
+
     @GetMapping(path = "/users/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Hidden
     public ResponseEntity<UserDto> getUserById(@PathVariable("id") Long id) {
         Optional<UserEntity> userEntity = userService.getById(id);
         return userEntity.map(entity

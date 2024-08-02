@@ -8,18 +8,18 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.example.plannerapi.domain.entities.UserEntity;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import java.time.Instant;
+
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import static java.time.Instant.ofEpochSecond;
-
 @Service
+@RequiredArgsConstructor
 public class JwtService {
     @Value("${token.signing.key}")
     private String jwtSigningKey;
@@ -29,22 +29,21 @@ public class JwtService {
     private long jwtRefreshExpiration;
 
     public String generateAccessToken(UserDetails userDetails){
-        return generateAnyToken(userDetails, jwtExpiration);
+        return generateAnyToken(userDetails, jwtExpiration, "ACCESS");
     }
 
     public String generateRefreshToken(UserDetails userDetails) {
-        return generateAnyToken(userDetails, jwtRefreshExpiration);
+        return generateAnyToken(userDetails, jwtRefreshExpiration, "REFRESH");
     }
 
-    private String generateAnyToken(UserDetails userDetails, long jwtExpiration) {
+    private String generateAnyToken(UserDetails userDetails, long jwtExpiration, String tokenType) {
         HashMap<String, Object> claims = new HashMap<>();
         Date creationDate = new Date();
         if (userDetails instanceof UserEntity customUserDetails) {
             claims.put("id", customUserDetails.getUserId());
-            claims.put("email", customUserDetails.getEmail());
             claims.put("username", customUserDetails.getUsername());
             claims.put("role", customUserDetails.getRole().name());
-            claims.put("createdAt", creationDate);
+            claims.put("tokenType", tokenType);
             claims.put("expires", creationDate.toInstant().plus(jwtExpiration, ChronoUnit.SECONDS));
         }
         return prepareToken(claims);
@@ -76,14 +75,7 @@ public class JwtService {
         return getTokenPayload(token).get("username").asString();
     }
 
-    private boolean isTokenExpired(String token) {
-        Instant expiration = getTokenPayload(token).get("expires").asInstant();
-        return expiration.isBefore(new Date().toInstant());
-    }
-
-
-    public boolean isTokenValid(String token, UserDetails userDetails) {
-        String username = getTokenPayload(token).get("username").asString();
-        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+    public String extractTokenType(String token){
+        return getTokenPayload(token).get("tokenType").asString();
     }
 }

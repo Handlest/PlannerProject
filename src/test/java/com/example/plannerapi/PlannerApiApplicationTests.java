@@ -11,4 +11,9 @@ class PlannerApiApplicationTests {
 
     }
 
+    @Test
+    void testUserAccessToTask() {
+
+    }
+
 }
